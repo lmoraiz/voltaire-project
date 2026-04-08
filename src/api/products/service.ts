@@ -1,5 +1,5 @@
 import pool from '../../config/db.config';
-import { Product, CreateProductInput } from './model';
+import { Product, CreateProductInput, UpdateProductInput } from './model';
 
 const productsService = {
   getAll: async (): Promise<Product[]> => {
@@ -26,6 +26,28 @@ const productsService = {
       if (error.code === '23505') return null; // unique_violation
       throw error;
     }
+  },
+
+  update: async (id: number, data: UpdateProductInput): Promise<Product | null> => {
+    const fields = Object.keys(data) as (keyof UpdateProductInput)[];
+    if (fields.length === 0) return null;
+
+    const setClauses = fields.map((field, i) => `${field} = $${i + 1}`).join(', ');
+    const values = fields.map(field => data[field]);
+
+    const { rows } = await pool.query<Product>(
+      `UPDATE products SET ${setClauses} WHERE id = $${fields.length + 1} RETURNING *`,
+      [...values, id]
+    );
+    return rows[0] ?? null;
+  },
+
+  delete: async (id: number): Promise<boolean> => {
+    const { rowCount } = await pool.query(
+      'DELETE FROM products WHERE id = $1',
+      [id]
+    );
+    return (rowCount ?? 0) > 0;
   },
 };
 

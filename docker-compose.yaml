@@ -12,4 +12,4 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - ./dbdata:/var/lib/postgresql/data
-    restart: unless-stoppedgit 
+    restart: unless-stopped

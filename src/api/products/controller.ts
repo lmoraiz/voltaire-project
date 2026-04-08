@@ -7,9 +7,9 @@ export default {
   listProducts: async (req: Request, res: Response) => {
     try {
       const products = await productsService.getAll();
-      res.status(200).json({ products: products });
+      res.status(200).json({ products });
     } catch (error) {
-      res.status(500).json({ message: 'Error listing products' });
+      res.status(500).json({ message: 'Error listing products' + error });
     }
   },
 
@@ -54,29 +54,43 @@ export default {
   // Update existing product
   updateProduct: async (req: Request, res: Response) => {
     try {
-      // TODO: Implement update product logic
-      const { id } = req.params;
-      const updatedData = req.body;
-      res.status(404).json({
-        success: false,
-        message: 'Update product controller is not implemented yet.'
-      });
+      const id = Number(req.params['id']);
+      if (!Number.isInteger(id) || id <= 0) {
+        res.status(400).json({ message: 'Invalid product ID' });
+        return;
+      }
+      const parsed = UpdateProductSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ errors: parsed.error.flatten().fieldErrors });
+        return;
+      }
+      const product = await productsService.update(id, parsed.data);
+      if (!product) {
+        res.status(404).json({ message: 'Product not found' });
+        return;
+      }
+      res.status(200).json({ product });
     } catch (error) {
-      res.status(500).json({message: 'Error updating product' });
+      res.status(500).json({ message: 'Error updating product' });
     }
   },
 
   // Delete product
   deleteProduct: async (req: Request, res: Response) => {
     try {
-      // TODO: Implement delete product logic
-      const { id } = req.params;
-      res.status(404).json({
-        success: false,
-        message: 'Delete product controller is not implemented yet.'
-      });
+      const id = Number(req.params['id']);
+      if (!Number.isInteger(id) || id <= 0) {
+        res.status(400).json({ message: 'Invalid product ID' });
+        return;
+      }
+      const deleted = await productsService.delete(id);
+      if (!deleted) {
+        res.status(404).json({ message: 'Product not found' });
+        return;
+      }
+      res.status(204).send();
     } catch (error) {
-      res.status(500).json({message: 'Error deleting product' });
+      res.status(500).json({ message: 'Error deleting product' });
     }
   }
 };
