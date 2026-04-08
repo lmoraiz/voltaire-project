@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: products    
+    volumes:
+      - ./dbdata:/var/lib/postgresql/data
+    restart: unless-stopped
