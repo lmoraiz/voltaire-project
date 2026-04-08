@@ -1,7 +1,9 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors"
 import productRoutes from './api/products/routes';
-
 const app = express();
 
 // Middleware

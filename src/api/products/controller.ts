@@ -1,20 +1,19 @@
+import { Request, Response } from "express";
+import productsService from './service'
 // Product Controller - Handle product operations
 export default {
   // List products
-  listProducts: async (req: any, res: any) => {
+  listProducts: async (req: Request, res: Response) => {
     try {
-      // TODO: Implement product listing logic
-      res.status(404).json({
-        success: false,
-        message: 'List products controller is not implemented yet.'
-      });
+      const products = await productsService.getAll();
+      res.status(200).json({ success: true, data: products });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error listing products' });
     }
   },
 
   // Get product by ID
-  getProductById: async (req: any, res: any) => {
+  getProductById: async (req: Request, res: Response) => {
     try {
       // TODO: Implement get product by ID logic
       const { id } = req.params;
@@ -28,7 +27,7 @@ export default {
   },
 
   // Create new product
-  createProduct: async (req: any, res: any) => {
+  createProduct: async (req: Request, res: Response) => {
     try {
       // TODO: Implement create product logic
       const productData = req.body;
@@ -42,7 +41,7 @@ export default {
   },
 
   // Update existing product
-  updateProduct: async (req: any, res: any) => {
+  updateProduct: async (req: Request, res: Response) => {
     try {
       // TODO: Implement update product logic
       const { id } = req.params;
@@ -57,7 +56,7 @@ export default {
   },
 
   // Delete product
-  deleteProduct: async (req: any, res: any) => {
+  deleteProduct: async (req: Request, res: Response) => {
     try {
       // TODO: Implement delete product logic
       const { id } = req.params;
