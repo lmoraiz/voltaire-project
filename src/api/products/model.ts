@@ -6,3 +6,6 @@ export interface Product {
   category: string;
   created_at: Date;
 }
+
+export type CreateProductInput = Omit<Product, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateProductInput = Partial<CreateProductInput>;
