@@ -10,10 +10,16 @@
     created_at: string;
   }
 
+  type CreateProductPayload = Omit<Product, 'id' | 'created_at'>;
+
   const products = ref<Product[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
   const productsApiUrl = 'http://localhost:3000/api/products';
+
+  const product = ref<CreateProductPayload>({ name: '', price: 0, stock: 0, category: '' });
+  const formError = ref<string | null>(null);
+  const formSubmitting = ref(false);
 
   async function fetchProducts() {
     loading.value = true;
@@ -47,13 +53,32 @@
     }
   }
 
+  async function createProduct() {
+    formError.value = null;
+    formSubmitting.value = true;
+    try {
+      const res = await fetch(productsApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product.value),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${data.message ?? JSON.stringify(data.errors)}`);
+      products.value.push(data.product);
+      product.value = { name: '', price: 0, stock: 0, category: '' };
+    } catch (e) {
+      formError.value = e instanceof Error ? e.message : String(e);
+    } finally {
+      formSubmitting.value = false;
+    }
+  }
+
   onMounted(fetchProducts);
 </script>
 
 <template>
   <div class="container">
     <h1>Products</h1>
-
     <p v-if="loading">Loading...</p>
     <p v-else-if="error" class="error">Error: {{ error }}</p>
 
@@ -79,5 +104,25 @@
         </tr>
       </tbody>
     </table>
+
+    <form @submit.prevent="createProduct">
+      <h2>Add Product</h2>
+      <p v-if="formError" class="error">{{ formError }}</p>
+      <div>
+        <label>Name<input v-model="product.name" type="text" required /></label>
+      </div>
+      <div>
+        <label>Category<input v-model="product.category" type="text" required /></label>
+      </div>
+      <div>
+        <label>Price<input v-model.number="product.price" type="number" step="0.01" min="0.01" required /></label>
+      </div>
+      <div>
+        <label>Stock<input v-model.number="product.stock" type="number" step="1" min="0" required /></label>
+      </div>
+      <button type="submit" :disabled="formSubmitting">
+        {{ formSubmitting ? 'Adding...' : 'Add Product' }}
+      </button>
+    </form>
   </div>
 </template>
