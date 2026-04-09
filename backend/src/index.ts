@@ -15,6 +15,15 @@ app.use(express.json());
 // Import and mount product routes
 app.use('/api', productRoutes);
 
+// Serve frontend static files
+const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDist));
+
+// Fallback to index.html for client-side routing
+app.get('/{*path}', (_req: Request, res: Response) => {
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
 // Health check
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
