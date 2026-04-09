@@ -13,7 +13,8 @@
   const products = ref<Product[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const productsApiUrl = 'http://localhost:3000/api/products/100';
+  const productsApiUrl = 'http://localhost:3000/api/products';
+
   async function fetchProducts() {
     loading.value = true;
     error.value = null;
@@ -21,11 +22,28 @@
       const res = await fetch(productsApiUrl);
       const data = await res.json();
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${data.message}`);
-      products.value = data.products ?? data;
-    } catch (e: any) {
-      error.value = e.message;
+      products.value = data.products;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e);
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function deleteProduct(id: number) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    error.value = null;
+    try {
+      const res = await fetch(`${productsApiUrl}/${id}`, { 
+        method: 'DELETE' 
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(`HTTP ${res.status}: ${data.message}`);
+      }
+      products.value = products.value.filter(p => p.id !== id);
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e);
     }
   }
 
@@ -47,6 +65,7 @@
           <th>Category</th>
           <th>Price</th>
           <th>Stock</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -56,10 +75,9 @@
           <td>{{ product.category }}</td>
           <td>{{ product.price }}</td>
           <td>{{ product.stock }}</td>
+          <td><button @click="deleteProduct(product.id)">Delete</button></td>
         </tr>
       </tbody>
     </table>
   </div>
 </template>
-
-<style scoped></style>
