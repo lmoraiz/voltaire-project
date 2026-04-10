@@ -33,6 +33,8 @@ En production, le serveur Express sert à la fois l'API REST et le frontend comp
 Pour lancer le projet. Il suffit de lancer cette commande à la racine : \
 `docker compose up --build`
 
+Puis lancer http://localhost:3000/ dans votre browser.
+
 ### Dévelopement front
 
 Dans le dossier frontend :\
@@ -72,3 +74,5 @@ Cela me permet aussi d'avoir un seul serveur qui expose les routes de l'API et l
 - Pas d'ORM donc requête écrite manuellement, cependant c'est rajoutable via des packages comme Prisma
 - Scalabilité, si jamais l'API et/ou grossis beaucoup, on risque d'avoir des performances réduites.
 - Si on a besoin de beaucoup plus de features, autant utiliser des frameworks plus robustes comme Spring Boot et Angular que rajouter plein de packages npm.
+- Authentification implementé mais pas l'authorization.
+- Pas de log dans le back pour analyser l'utilisation de l'API
