@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue';
-
+  import { Auth } from './composable/auth';
   interface Product {
     id: number;
     name: string;
@@ -11,6 +11,9 @@
   }
 
   type CreateProductPayload = Omit<Product, 'id' | 'created_at'>;
+  const { login, getToken, isLoggedIn } = Auth();
+  const loginError = ref<string | null>(null);
+  const userId = ref('');
 
   const products = ref<Product[]>([]);
   const loading = ref(false);
@@ -21,11 +24,26 @@
   const formError = ref<string | null>(null);
   const formSubmitting = ref(false);
 
+  function authHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+    };
+  }
+
+  async function handleLogin() {
+    try {
+      await login(userId.value);
+      fetchProducts();
+    } catch (e) {
+      loginError.value = e instanceof Error ? e.message : String(e);
+    }
+  }
   async function fetchProducts() {
     loading.value = true;
     error.value = null;
     try {
-      const res = await fetch(productsApiUrl);
+      const res = await fetch(productsApiUrl, { headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${data.message}`);
       products.value = data.products;
@@ -41,7 +59,8 @@
     error.value = null;
     try {
       const res = await fetch(`${productsApiUrl}/${id}`, { 
-        method: 'DELETE' 
+        method: 'DELETE',
+        headers: authHeaders(),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -59,7 +78,7 @@
     try {
       const res = await fetch(productsApiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(product.value),
       });
       const data = await res.json();
@@ -72,12 +91,20 @@
       formSubmitting.value = false;
     }
   }
-
-  onMounted(fetchProducts);
 </script>
 
 <template>
-  <div class="container">
+  <!-- Login form -->
+  <div v-if="!isLoggedIn()">
+    <h1>Login</h1>
+    <p v-if="loginError" class="error">{{ loginError }}</p>
+    <form @submit.prevent="handleLogin">
+      <input v-model="userId" type="text" placeholder="User ID" required />
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <div v-else class="container">
     <h1>Products</h1>
     <p v-if="loading">Loading...</p>
     <p v-else-if="error" class="error">Error: {{ error }}</p>

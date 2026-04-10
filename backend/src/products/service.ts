@@ -1,5 +1,5 @@
 import pool from '../config/db.config';
-import { Product, CreateProductInput, UpdateProductInput } from './model';
+import { Product, CreateProductInput, UpdateProductInput } from './models';
 
 const productsService = {
   getAll: async (): Promise<Product[]> => {
